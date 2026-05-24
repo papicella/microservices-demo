@@ -26,6 +26,7 @@
            (https://cloud.google.com/logging/docs/agent/configuration#special-fields). -->
 
       <JsonLayout compact="true" eventEol="true">
+        <KeyValuePair key="correlation_id" value="$${ctx:correlation_id}"/>
         <KeyValuePair key="logging.googleapis.com/trace" value="$${ctx:traceId}"/>
         <KeyValuePair key="logging.googleapis.com/spanId" value="$${ctx:spanId}"/>
         <KeyValuePair key="logging.googleapis.com/traceSampled" value="$${ctx:traceSampled}"/>

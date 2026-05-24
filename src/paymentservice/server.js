@@ -17,6 +17,7 @@ const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
 const charge = require('./charge');
+const { wrapServiceImplementation } = require('./correlation');
 
 const logger = require('./logger')
 
@@ -39,8 +40,9 @@ class HipsterShopServer {
    * @param {*} callback  fn(err, ChargeResponse)
    */
   static ChargeServiceHandler(call, callback) {
+    const log = call.logger || logger;
     try {
-      logger.info(`PaymentService#Charge invoked with request ${JSON.stringify(call.request)}`);
+      log.info(`PaymentService#Charge invoked with request ${JSON.stringify(call.request)}`);
       const response = charge(call.request);
       callback(null, response);
     } catch (err) {
@@ -87,16 +89,22 @@ class HipsterShopServer {
 
     this.server.addService(
       hipsterShopPackage.PaymentService.service,
-      {
-        charge: HipsterShopServer.ChargeServiceHandler.bind(this)
-      }
+      wrapServiceImplementation(
+        {
+          charge: HipsterShopServer.ChargeServiceHandler.bind(this),
+        },
+        logger,
+      ),
     );
 
     this.server.addService(
       healthPackage.Health.service,
-      {
-        check: HipsterShopServer.CheckHandler.bind(this)
-      }
+      wrapServiceImplementation(
+        {
+          check: HipsterShopServer.CheckHandler.bind(this),
+        },
+        logger,
+      ),
     );
   }
 }

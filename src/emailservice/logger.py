@@ -16,7 +16,13 @@
 
 import logging
 import sys
+import contextvars
 from pythonjsonlogger import jsonlogger
+
+correlation_id_var = contextvars.ContextVar('correlation_id', default='')
+
+def get_correlation_id():
+  return correlation_id_var.get()
 
 # TODO(yoshifumi) this class is duplicated since other Python services are
 # not sharing the modules for logging.
@@ -29,6 +35,9 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
       log_record['severity'] = log_record['severity'].upper()
     else:
       log_record['severity'] = record.levelname
+    correlation_id = get_correlation_id()
+    if correlation_id:
+      log_record['correlation_id'] = correlation_id
 
 def getJSONLogger(name):
   logger = logging.getLogger(name)

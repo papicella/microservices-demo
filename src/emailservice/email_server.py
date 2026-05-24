@@ -40,6 +40,7 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 # import googlecloudprofiler
 
 from logger import getJSONLogger
+from correlation import CorrelationIdServerInterceptor
 logger = getJSONLogger('emailservice-server')
 
 # Loads confirmation email template from file
@@ -116,7 +117,10 @@ class HealthCheck():
       status=health_pb2.HealthCheckResponse.SERVING)
 
 def start(dummy_mode):
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),)
+  server = grpc.server(
+    futures.ThreadPoolExecutor(max_workers=10),
+    interceptors=(CorrelationIdServerInterceptor(),),
+  )
   service = None
   if dummy_mode:
     service = DummyEmailService()

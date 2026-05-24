@@ -56,15 +56,18 @@ func (r *responseRecorder) WriteHeader(statusCode int) {
 
 func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	requestID, _ := uuid.NewRandom()
-	ctx = context.WithValue(ctx, ctxKeyRequestID{}, requestID.String())
+	correlationID := correlationIDFromHTTPRequest(r)
+	ctx = contextWithCorrelationID(ctx, correlationID)
+	ctx = context.WithValue(ctx, ctxKeyRequestID{}, correlationID)
+	w.Header().Set(correlationIDHeader, correlationID)
 
 	start := time.Now()
 	rr := &responseRecorder{w: w}
 	log := lh.log.WithFields(logrus.Fields{
 		"http.req.path":   r.URL.Path,
 		"http.req.method": r.Method,
-		"http.req.id":     requestID.String(),
+		"http.req.id":     correlationID,
+		"correlation_id":  correlationID,
 	})
 	if v, ok := r.Context().Value(ctxKeySessionID{}).(string); ok {
 		log = log.WithField("session", v)
