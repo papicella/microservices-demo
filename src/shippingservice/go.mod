@@ -6,6 +6,7 @@ toolchain go1.26.1
 
 require (
 	cloud.google.com/go/profiler v0.4.3
+	github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation v0.0.0
 	github.com/sirupsen/logrus v1.9.4
 	golang.org/x/net v0.52.0
 	google.golang.org/grpc v1.79.2
@@ -22,6 +23,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/pprof v0.0.0-20251114195745-4902fdda35c8 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -40,3 +42,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 )
+
+replace github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation => ../shared/correlation

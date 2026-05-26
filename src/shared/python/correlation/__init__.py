@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared', 'python'))
-
-from correlation import get_json_logger  # noqa: E402
-
-def getJSONLogger(name):
-  return get_json_logger(name, 'emailservice')
+from .context import (
+    HEADER_NAME,
+    METADATA_KEY,
+    extract_or_generate_from_http,
+    get_correlation_id,
+    set_correlation_id,
+)
+from .logger import get_json_logger
+from .grpc_interceptors import CorrelationClientInterceptor, CorrelationServerInterceptor

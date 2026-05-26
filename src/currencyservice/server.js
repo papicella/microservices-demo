@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-const pino = require('pino');
-const logger = pino({
-  name: 'currencyservice-server',
-  messageKey: 'message',
-  formatters: {
-    level (logLevelString, logLevelNum) {
-      return { severity: logLevelString }
-    }
-  }
-});
+const { wrapHandlers } = require('../shared/nodejs/correlation/grpc');
+const logger = require('./logger');
 
 if(process.env.DISABLE_PROFILER) {
   logger.info("Profiler disabled.")
@@ -182,8 +174,14 @@ function check (call, callback) {
 function main () {
   logger.info(`Starting gRPC server on port ${PORT}...`);
   const server = new grpc.Server();
-  server.addService(shopProto.CurrencyService.service, {getSupportedCurrencies, convert});
-  server.addService(healthProto.Health.service, {check});
+  server.addService(
+    shopProto.CurrencyService.service,
+    wrapHandlers({ getSupportedCurrencies, convert }, 'currencyservice', logger),
+  );
+  server.addService(
+    healthProto.Health.service,
+    wrapHandlers({ check }, 'currencyservice', logger),
+  );
 
   server.bindAsync(
     `[::]:${PORT}`,

@@ -17,15 +17,16 @@ package main
 import (
 	"context"
 	"net/http"
-	"time"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+
+	"github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation"
 )
 
 type ctxKeyLog struct{}
-type ctxKeyRequestID struct{}
 
 type logHandler struct {
 	log  *logrus.Logger
@@ -56,15 +57,18 @@ func (r *responseRecorder) WriteHeader(statusCode int) {
 
 func (lh *logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	requestID, _ := uuid.NewRandom()
-	ctx = context.WithValue(ctx, ctxKeyRequestID{}, requestID.String())
+	correlationID := correlation.ExtractOrGenerateFromHTTP(r)
+	ctx = correlation.WithCorrelationID(ctx, correlationID)
+	w.Header().Set(correlation.HeaderName, correlationID)
 
 	start := time.Now()
 	rr := &responseRecorder{w: w}
 	log := lh.log.WithFields(logrus.Fields{
+		"service":         "frontend",
+		"correlation_id":  correlationID,
 		"http.req.path":   r.URL.Path,
 		"http.req.method": r.Method,
-		"http.req.id":     requestID.String(),
+		"http.req.id":     correlationID,
 	})
 	if v, ok := r.Context().Value(ctxKeySessionID{}).(string); ok {
 		log = log.WithField("session", v)

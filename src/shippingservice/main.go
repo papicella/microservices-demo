@@ -29,6 +29,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
+	"github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation"
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/shippingservice/genproto"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -83,10 +84,14 @@ func main() {
 	var srv *grpc.Server
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled, but temporarily unavailable")
-		srv = grpc.NewServer()
+		srv = grpc.NewServer(
+			grpc.ChainUnaryInterceptor(correlation.UnaryServerInterceptor("shippingservice", log)),
+		)
 	} else {
 		log.Info("Stats disabled.")
-		srv = grpc.NewServer()
+		srv = grpc.NewServer(
+			grpc.ChainUnaryInterceptor(correlation.UnaryServerInterceptor("shippingservice", log)),
+		)
 	}
 	svc := &server{}
 	pb.RegisterShippingServiceServer(srv, svc)
@@ -117,8 +122,9 @@ func (s *server) Watch(req *healthpb.HealthCheckRequest, ws healthpb.Health_Watc
 
 // GetQuote produces a shipping quote (cost) in USD.
 func (s *server) GetQuote(ctx context.Context, in *pb.GetQuoteRequest) (*pb.GetQuoteResponse, error) {
-	log.Info("[GetQuote] received request")
-	defer log.Info("[GetQuote] completed request")
+	reqLog := correlation.Entry(ctx, log, "shippingservice")
+	reqLog.Info("[GetQuote] received request")
+	defer reqLog.Info("[GetQuote] completed request")
 
 	// 1. Generate a quote based on the total number of items to be shipped.
 	count := 0
@@ -140,8 +146,9 @@ func (s *server) GetQuote(ctx context.Context, in *pb.GetQuoteRequest) (*pb.GetQ
 // ShipOrder mocks that the requested items will be shipped.
 // It supplies a tracking ID for notional lookup of shipment delivery status.
 func (s *server) ShipOrder(ctx context.Context, in *pb.ShipOrderRequest) (*pb.ShipOrderResponse, error) {
-	log.Info("[ShipOrder] received request")
-	defer log.Info("[ShipOrder] completed request")
+	reqLog := correlation.Entry(ctx, log, "shippingservice")
+	reqLog.Info("[ShipOrder] received request")
+	defer reqLog.Info("[ShipOrder] completed request")
 	// 1. Create a Tracking ID
 	baseAddress := fmt.Sprintf("%s, %s, %s", in.Address.StreetAddress, in.Address.City, in.Address.State)
 	id := CreateTrackingId(baseAddress)

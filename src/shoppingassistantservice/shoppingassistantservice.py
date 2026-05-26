@@ -15,7 +15,11 @@
 # limitations under the License.
 
 import os
+import sys
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared', 'python'))
+
+from correlation import extract_or_generate_from_http, get_json_logger, set_correlation_id
 from google.cloud import secretmanager_v1
 from urllib.parse import unquote
 from langchain_core.messages import HumanMessage
@@ -59,12 +63,19 @@ vectorstore = AlloyDBVectorStore.create_sync(
     metadata_columns=["id", "name", "categories"]
 )
 
+logger = get_json_logger('shoppingassistantservice-server', 'shoppingassistantservice')
+
 def create_app():
     app = Flask(__name__)
 
+    @app.before_request
+    def bind_correlation_id():
+        correlation_id = extract_or_generate_from_http(request.headers)
+        set_correlation_id(correlation_id)
+
     @app.route("/", methods=['POST'])
     def talkToGemini():
-        print("Beginning RAG call")
+        logger.info("Beginning RAG call")
         prompt = request.json['message']
         prompt = unquote(prompt)
 
@@ -80,22 +91,20 @@ def create_app():
             ]
         )
         response = llm_vision.invoke([message])
-        print("Description step:")
-        print(response)
+        logger.info("Description step completed")
         description_response = response.content
 
         # Step 2 – Similarity search with the description & user prompt
         vector_search_prompt = f""" This is the user's request: {prompt} Find the most relevant items for that prompt, while matching style of the room described here: {description_response} """
-        print(vector_search_prompt)
+        logger.debug("vector search prompt prepared")
 
         docs = vectorstore.similarity_search(vector_search_prompt)
-        print(f"Vector search: {description_response}")
-        print(f"Retrieved documents: {len(docs)}")
+        logger.info("vector search completed", extra={"document_count": len(docs)})
         #Prepare relevant documents for inclusion in final prompt
         relevant_docs = ""
         for doc in docs:
             doc_details = doc.to_json()
-            print(f"Adding relevant document to prompt context: {doc_details}")
+            logger.debug("adding relevant document to prompt context")
             relevant_docs += str(doc_details) + ", "
 
         # Step 3 – Tie it all together by augmenting our call to Gemini-pro
@@ -103,8 +112,7 @@ def create_app():
         design_prompt = (
             f" You are an interior designer that works for Online Boutique. You are tasked with providing recommendations to a customer on what they should add to a given room from our catalog. This is the description of the room: \n"
             f"{description_response} Here are a list of products that are relevant to it: {relevant_docs} Specifically, this is what the customer has asked for, see if you can accommodate it: {prompt} Start by repeating a brief description of the room's design to the customer, then provide your recommendations. Do your best to pick the most relevant item out of the list of products provided, but if none of them seem relevant, then say that instead of inventing a new product. At the end of the response, add a list of the IDs of the relevant products in the following format for the top 3 results: [<first product ID>], [<second product ID>], [<third product ID>] ")
-        print("Final design prompt: ")
-        print(design_prompt)
+        logger.info("generating final design response")
         design_response = llm.invoke(
             design_prompt
         )

@@ -1,6 +1,4 @@
-#!/usr/bin/python
-#
-# Copyright 2018 Google LLC
+# Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,28 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+import os
 import sys
-from pythonjsonlogger import jsonlogger
 
-# TODO(yoshifumi) this class is duplicated since other Python services are
-# not sharing the modules for logging.
-class CustomJsonFormatter(jsonlogger.JsonFormatter):
-  def add_fields(self, log_record, record, message_dict):
-    super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
-    if not log_record.get('timestamp'):
-      log_record['timestamp'] = record.created
-    if log_record.get('severity'):
-      log_record['severity'] = log_record['severity'].upper()
-    else:
-      log_record['severity'] = record.levelname
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared', 'python'))
+
+from correlation import get_json_logger  # noqa: E402
 
 def getJSONLogger(name):
-  logger = logging.getLogger(name)
-  handler = logging.StreamHandler(sys.stdout)
-  formatter = CustomJsonFormatter('%(timestamp)s %(severity)s %(name)s %(message)s')
-  handler.setFormatter(formatter)
-  logger.addHandler(handler)
-  logger.setLevel(logging.INFO)
-  logger.propagate = False
-  return logger
+  return get_json_logger(name, 'recommendationservice')

@@ -14,17 +14,8 @@
 
 const cardValidator = require('simple-card-validator');
 const { v4: uuidv4 } = require('uuid');
-const pino = require('pino');
 
-const logger = pino({
-  name: 'paymentservice-charge',
-  messageKey: 'message',
-  formatters: {
-    level (logLevelString, logLevelNum) {
-      return { severity: logLevelString }
-    }
-  }
-});
+const logger = require('./logger');
 
 
 class CreditCardError extends Error {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-const pino = require('pino');
+'use strict';
 
-module.exports = pino({
-  name: 'paymentservice-server',
-  messageKey: 'message',
-  formatters: {
-    level (logLevelString, logLevelNum) {
-      return { severity: logLevelString }
-    }
-  }
-});
+const { createLogger } = require('../shared/nodejs/correlation/logger');
+
+module.exports = createLogger('paymentservice');

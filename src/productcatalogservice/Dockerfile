@@ -22,6 +22,7 @@ ARG TARGETARCH=amd64
 WORKDIR /src
 # restore dependencies
 COPY go.mod go.sum ./
+COPY ../shared/correlation /src/shared/correlation
 RUN go mod download
 COPY . .
 

@@ -6,6 +6,7 @@ toolchain go1.26.1
 
 require (
 	cloud.google.com/go/profiler v0.4.3
+	github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation v0.0.0
 	github.com/google/uuid v1.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.4
@@ -48,3 +49,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
 )
+
+replace github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation => ../shared/correlation

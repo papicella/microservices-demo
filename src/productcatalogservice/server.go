@@ -26,6 +26,7 @@ import (
 	"time"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
+	"github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -132,7 +133,9 @@ func run(port string) string {
 			propagation.TraceContext{}, propagation.Baggage{}))
 	var srv *grpc.Server
 	srv = grpc.NewServer(
-		grpc.StatsHandler(otelgrpc.NewServerHandler()))
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.ChainUnaryInterceptor(correlation.UnaryServerInterceptor("productcatalogservice", log)),
+	)
 
 	svc := &productCatalog{}
 	err = loadCatalog(&svc.catalog)

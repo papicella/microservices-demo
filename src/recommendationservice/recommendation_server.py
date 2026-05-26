@@ -15,6 +15,10 @@
 # limitations under the License.
 
 import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared', 'python'))
+
 import random
 import time
 import traceback
@@ -132,11 +136,18 @@ if __name__ == "__main__":
     if catalog_addr == "":
         raise Exception('PRODUCT_CATALOG_SERVICE_ADDR environment variable not set')
     logger.info("product catalog address: " + catalog_addr)
-    channel = grpc.insecure_channel(catalog_addr)
+    from correlation.grpc_interceptors import CorrelationClientInterceptor, CorrelationServerInterceptor
+    channel = grpc.intercept_channel(
+        grpc.insecure_channel(catalog_addr),
+        CorrelationClientInterceptor(),
+    )
     product_catalog_stub = demo_pb2_grpc.ProductCatalogServiceStub(channel)
 
     # create gRPC server
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=10),
+        interceptors=[CorrelationServerInterceptor('recommendationservice', logger)],
+    )
 
     # add class to gRPC server
     service = RecommendationService()

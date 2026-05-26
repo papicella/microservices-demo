@@ -47,8 +47,10 @@ WORKDIR /email_server
 # Grab packages from builder
 COPY --from=builder /usr/local/lib/python3.14/ /usr/local/lib/python3.14/
 
-# Add the application
+# Add shared libraries and application
+COPY ../shared/python /shared/python
 COPY . .
+ENV PYTHONPATH=/shared/python:${PYTHONPATH}
 
 EXPOSE 8080
 ENTRYPOINT [ "python", "email_server.py" ]

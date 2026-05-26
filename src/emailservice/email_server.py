@@ -18,6 +18,8 @@ from concurrent import futures
 import argparse
 import os
 import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared', 'python'))
 import time
 import grpc
 import traceback
@@ -116,7 +118,11 @@ class HealthCheck():
       status=health_pb2.HealthCheckResponse.SERVING)
 
 def start(dummy_mode):
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10),)
+  from correlation.grpc_interceptors import CorrelationServerInterceptor
+  server = grpc.server(
+    futures.ThreadPoolExecutor(max_workers=10),
+    interceptors=[CorrelationServerInterceptor('emailservice', logger)],
+  )
   service = None
   if dummy_mode:
     service = DummyEmailService()

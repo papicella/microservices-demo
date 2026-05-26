@@ -38,6 +38,7 @@ WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
+COPY ../shared/nodejs /usr/src/shared/nodejs
 COPY . .
 
 EXPOSE 7000

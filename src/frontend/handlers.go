@@ -28,6 +28,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/GoogleCloudPlatform/microservices-demo/src/shared/correlation"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -469,6 +470,9 @@ func (fe *frontendServer) chatBotHandler(w http.ResponseWriter, r *http.Request)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+	if correlationID := correlation.FromContext(r.Context()); correlationID != "" {
+		req.Header.Set(correlation.HeaderName, correlationID)
+	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		renderHTTPError(log, r, w, errors.Wrap(err, "failed to send request"), http.StatusInternalServerError)
@@ -480,9 +484,6 @@ func (fe *frontendServer) chatBotHandler(w http.ResponseWriter, r *http.Request)
 		renderHTTPError(log, r, w, errors.Wrap(err, "failed to read response"), http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Printf("%+v\n", body)
-	fmt.Printf("%+v\n", res)
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
@@ -551,7 +552,8 @@ func renderHTTPError(log logrus.FieldLogger, r *http.Request, w http.ResponseWri
 func injectCommonTemplateData(r *http.Request, payload map[string]interface{}) map[string]interface{} {
 	data := map[string]interface{}{
 		"session_id":        sessionID(r),
-		"request_id":        r.Context().Value(ctxKeyRequestID{}),
+		"request_id":        correlation.FromContext(r.Context()),
+		"correlation_id":    correlation.FromContext(r.Context()),
 		"user_currency":     currentCurrency(r),
 		"platform_css":      plat.css,
 		"platform_name":     plat.provider,

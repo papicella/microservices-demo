@@ -16,6 +16,7 @@ using System;
 using Grpc.Core;
 using Npgsql;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using Google.Api.Gax.ResourceNames;
 using Google.Cloud.SecretManager.V1;
@@ -26,9 +27,11 @@ namespace cartservice.cartstore
     {
         private readonly string tableName;
         private readonly string connectionString;
+        private readonly ILogger<AlloyDBCartStore> _logger;
 
-        public AlloyDBCartStore(IConfiguration configuration)
+        public AlloyDBCartStore(IConfiguration configuration, ILogger<AlloyDBCartStore> logger)
         {
+            _logger = logger;
             // Create a Cloud Secrets client.
             SecretManagerServiceClient client = SecretManagerServiceClient.Create();
             var projectId = configuration["PROJECT_ID"];
@@ -61,7 +64,7 @@ namespace cartservice.cartstore
 
     public async Task AddItemAsync(string userId, string productId, int quantity)
     {
-        Console.WriteLine($"AddItemAsync for {userId} called");
+        _logger.LogInformation("AddItemAsync for {UserId} called", userId);
         try
         {
             await using var dataSource = NpgsqlDataSource.Create(connectionString);
@@ -103,7 +106,7 @@ namespace cartservice.cartstore
 
         public async Task<Hipstershop.Cart> GetCartAsync(string userId)
         {
-            Console.WriteLine($"GetCartAsync called for userId={userId}");
+            _logger.LogInformation("GetCartAsync called for userId={UserId}", userId);
             Hipstershop.Cart cart = new();
             cart.UserId = userId;
             try
@@ -140,7 +143,7 @@ namespace cartservice.cartstore
 
         public async Task EmptyCartAsync(string userId)
         {
-            Console.WriteLine($"EmptyCartAsync called for userId={userId}");
+            _logger.LogInformation("EmptyCartAsync called for userId={UserId}", userId);
 
             try
             {

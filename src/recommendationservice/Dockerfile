@@ -45,8 +45,10 @@ WORKDIR /recommendationservice
 # Grab packages from builder
 COPY --from=builder /usr/local/lib/python3.14/ /usr/local/lib/python3.14/
 
-# Add the application
+# Add shared libraries and application
+COPY ../shared/python /shared/python
 COPY . .
+ENV PYTHONPATH=/shared/python:${PYTHONPATH}
 
 # set listen port
 ENV PORT="8080"
