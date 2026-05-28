@@ -23,5 +23,10 @@
     "pino": "10.3.1",
     "simple-card-validator": "^1.1.0",
     "uuid": "^14.0.0"
+  },
+  "overrides": {
+    "protobufjs": "^7.5.8",
+    "@protobufjs/codegen": "^2.0.5",
+    "@protobufjs/utf8": "^1.1.1"
   }
 }
