@@ -34,6 +34,7 @@ Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
 | [checkoutservice](/src/checkoutservice)             | Go            | Retrieves user cart, prepares order and orchestrates the payment, shipping and the email notification.                            |
 | [recommendationservice](/src/recommendationservice) | Python        | Recommends other products based on what's given in the cart.                                                                      |
 | [adservice](/src/adservice)                         | Java          | Provides text ads based on given context words.                                                                                   |
+| [adminservice](/src/adminservice)                   | Java/Spring Boot | Internal admin REST API with in-memory config (standalone, local dev).                                                         |
 | [loadgenerator](/src/loadgenerator)                 | Python/Locust | Continuously sends requests imitating realistic user shopping flows to the frontend.                                              |
 
 ## Screenshots
